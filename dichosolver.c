@@ -10,12 +10,15 @@
 
 #define DBGLVL LOW_DEBUG
 
-int main(int argc, char** argv){
-	time_t clock1,clock2;
-	clock1 = time(NULL);
+int main ( int argc, char** argv ) {
 
-  if ( argc < 2 ){
-    printf("Discho solver: not enough arguments: filename needed\n",myrank);
+  #if DBGLVL >= LOW_DEBUG
+	time_t clock1, clock2;
+	clock1 = time(NULL);
+  #endif
+
+  if ( argc < 2 ) {
+    printf("not enough arguments: filename needed\n");
     exit(1);
   }
 
@@ -46,7 +49,8 @@ int main(int argc, char** argv){
     treesolver (root,mytask->b);
 
     #if DBGLVL >= LOW_DEBUG
-    	printf("task solved.\n"); fflush(stdout);
+        clock2 = time(NULL);
+    	printf("task solved in %ld sec, print\n",clock2-clock1); fflush(stdout);
     #endif
     //}
 
@@ -60,8 +64,6 @@ int main(int argc, char** argv){
       for ( decis = root->items ; decis->next != NULL ; decis = decis->next );
       printf ( "knapsack: (p=%ld w=%ld)\n", *(decis->p), *(decis->w) ); //fflush(stdout);
 
-	clock2 = time(NULL);
-	printf ("Elapsed time: %ld sec\n", clock2-clock1);
 
     }
 
@@ -69,28 +71,19 @@ int main(int argc, char** argv){
 	printf ("finalizing...\n"); fflush (stdout);
   #endif
 
-  /*
+
   #if DBGLVL >= LOW_DEBUG
   puts ("free tree"); fflush(stdout);
   #endif
+
   clean_tree (root);
-
-  node_t *t;
-  for( ; cnt > 0 ; cnt-- ){
-    t = root;
-    root = root->lnode;
-    free (t);
-  }
-
   free (root); //free_tree (root);
 
   #if DBGLVL >= LOW_DEBUG
     puts ("free some var"); fflush(stdout);
   #endif
   free_task(&mytask);
-  free(msgreq);
-  free(msgstat);
-  */
+
   #if DBGLVL >= LOW_DEBUG
   	printf("ok\n"); fflush (stdout);
   #endif

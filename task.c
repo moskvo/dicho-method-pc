@@ -48,16 +48,6 @@ item_t* copyitems (int size, item_t *others) {
   return r;
 }
 
-/*item_t* copyhash (item_t *other) {
-  item_t *hash = NULL, *ptr, *tmp;
-
-  for ( ptr = other ; ptr != NULL ; ptr = ptr->hh.next ) {
-    tmp = copyitem (ptr);
-    HASH_ADD_KEYPTR ( hh, hash, tmp->w, KNINT_SIZE, tmp );
-  }
-  return hash;
-}*/
-
 item_t* joinitems(int size1, item_t *it1, int size2, item_t *it2) {
   item_t *items = createitems(size1+size2);
   memcpy (items->p, it1->p, size1*KNINT_SIZE);
@@ -84,14 +74,6 @@ void print_items_line ( int size , item_t *item ){
     printf("(%4ld %4ld) ",*p,*w);
 }
 
-/*void print_hash (item_t *hash){
-  item_t *p;
-  for ( p = hash ; p != NULL ; p = p->hh.next ) {
-    printf ("(%4ld %4ld) ",*(p->p),*(p->w));
-  }
-  puts("");
-}*/
-
 void print_items_list (item_t *list){
   item_t *p;
   for ( p = list ; p != NULL ; p = p->next ) {
@@ -101,34 +83,23 @@ void print_items_list (item_t *list){
 }
 
 void free_items (item_t **headp){
-  if( headp ) {
-  free ((*headp)->p);
-  free ((*headp)->w);
-  free (*headp);
-  *headp = NULL;
+  if ( headp ) {
+    free ((*headp)->p);
+    free ((*headp)->w);
+    free (*headp);
+    *headp = NULL;
   }
 }
 
-/*void free_hash (item_t **hash){
-  if( hash ) {
-  item_t *p, *tmp;
-  HASH_ITER (hh, *hash, p, tmp) {
-    HASH_DEL (*hash, p);
-    free_items (&p);
-  }
-  *hash = NULL;
-  }
-}*/
-
 void free_items_list (item_t **list){
-  if( list ) {
-  item_t *p, *tmp;
-  for ( p = *list ; p != NULL ; ) {
-    tmp = p->next;
-    free_items (&p);
-    p = tmp;
-  }
-  *list = NULL;
+  if ( list ) {
+    item_t *p, *tmp;
+    for ( p = *list ; p != NULL ; ) {
+      tmp = p->next;
+      free_items (&p);
+      p = tmp;
+    }
+    *list = NULL;
   }
 }
 
@@ -245,22 +216,22 @@ task_t* createtask(int size, knint b){
 
 /*
   File's format:
-  n
-  c1 c2 ... cn
-  w1 w2 ... wn
   b
+  n
+  p1 p2 ... pn
+  w1 w2 ... wn
 */
 task_t* readtask(char* filename){
   task_t* task;
 
   FILE *file;
-  if( (file = fopen(filename,"r")) == 0 ) return 0;
+  if( (file = fopen(filename,"r")) == 0 ) return NULL;
 
     knint b;
-    if( fscanf(file,"%ld",&b) != 1 ) return 0;
+    if( fscanf(file,"%ld",&b) != 1 ) return NULL;
 
     int size;
-    if( fscanf(file,"%d",&size) != 1 ) return 0;
+    if( fscanf(file,"%d",&size) != 1 ) return NULL;
 
     task = createtask(size,b);
 
@@ -277,32 +248,6 @@ task_t* readtask(char* filename){
   return task;
 }
 
-/*task_t* readtask(char* filename, int part, int groupsize){
-  if( groupsize < 1 || part > groupsize ) return 0;
-  task_t* task = (task_t*) malloc(sizeof(task_t));
-
-  FILE *file;
-  if( (file = fopen(filename,"r")) == 0 ) return 0;
-
-    int size;
-    if( fscanf(file,"%u",&size) != 1 ) return 0;
-    size = size/groupsize + ( part == groupsize )?(size%groupsize):0;
-    task->length = size;
-
-    if( (task->items = createitems(size)) == 0 ) return 0;
-    item_t *head = task->items;
-    int *tmp;
-    for( tmp = head->p ; tmp < head->p+size ; tmp++ )
-    { if( fscanf (file,"%u", tmp) != 1 ) return 0; }
-    for( tmp = head->w ; tmp < head->w+size ; tmp++ )
-    { if( fscanf (file,"%u", tmp) != 1 ) return 0; }
-    if( fscanf(file,"%u",&(task->b)) != 1 ) return 0;
-
-  fclose(file);
-
-  return task;
-}*/
-
 void print_task (task_t* task) {
   puts("task");
   printf ("  b = %ld\n  length = %d", task->b, task->length);
@@ -313,7 +258,7 @@ void free_task(task_t **p){
   if ( p ) {
     if( (*p)->items != NULL ) free_items ( &((*p)->items) );
     free (*p);
-    *p = 0;
+    *p = NULL;
   }
 }
 
@@ -322,7 +267,7 @@ void free_task(task_t **p){
 const size_t NODE_SIZE = sizeof (node_t);
 
 node_t* createnodes (int size) {
-  if( size < 1 ) return 0;
+  if( size < 1 ) return NULL;
   node_t *rez = (node_t*)calloc (size,NODE_SIZE), *t;
   for ( t = rez ; t < rez + size ; t++ ) {
     t->source = -1;

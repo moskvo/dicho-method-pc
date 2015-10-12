@@ -31,9 +31,6 @@ node_t* optimal_dichotomic_tree ( const task_t *task){
   int i;
   for ( i = 0 ; i < task->length-q ; i++ ) { // in fact p move as p = p + 2
     p->lnode = (p+1);
-    //paired with hash p->lnode->items = NULL;
-    //tmp = copyitem(pl);
-    //HASH_ADD_KEYPTR ( hh, p->lnode->items, tmp->w, KNINT_SIZE, tmp);
     p->lnode->items = copyitem(pl);
     pl++;
     p->lnode->length = 1;
@@ -82,7 +79,6 @@ void dicho_tree_notrecursive(node_t *head, const int size, item_t *items){
   int dp = (int)log2f ((float)size); // tree's depth
   int i;
   for ( i = 0 ; i < dp ; i++ ){
-    //1: pnext = (node_t*)calloc (pnext_size, NODE_SIZE); // the next level of tree
     pnext = p + p_size; // the next level of tree
     ss = (int*)malloc (2*pnext_size*sizeof(int));
     ii = ss + pnext_size;
@@ -91,7 +87,6 @@ void dicho_tree_notrecursive(node_t *head, const int size, item_t *items){
     ss2 = ss;
     ii2 = ii;
     tmpsizes = sizes; // for free()
-    //tmpindexes = indexes; // for free()
     int j = 0, d;
     for( t1 = p ; t1 < p + p_size ; t1++ ){
       d = (*sizes) / 2;
@@ -120,33 +115,21 @@ void dicho_tree_notrecursive(node_t *head, const int size, item_t *items){
     pnext_size <<= 1;
   } // for i
 
-  // hang up all remaining items (where sizes[i]==2)
-  //t2 = p;
-  item_t *tmp;
+  // hang up all remaining items
   pnext = p + p_size;
   for( i = 0 ; i < p_size ; i++ ){
     if( sizes[i] > 2 ) { printf("size of leaf more than 2\n"); fflush(stdout); }
     if( sizes[i] == 2 ){
-      //1: pnext = (node_t*)calloc (2,NODE_SIZE);
-      //pnext->items = NULL;
-      //tmp = copyitem (&items[indexes[i]]);
-      //HASH_ADD_KEYPTR (hh, pnext->items, tmp->w, KNINT_SIZE, tmp);
       pnext->items = copyitem (&items[indexes[i]]);
       pnext->length = 1;
       p->lnode = pnext;
       pnext->hnode = p; pnext++;
 
-      //pnext->items = NULL;
-      //tmp = copyitem (&items[indexes[i]+1]);
-      //HASH_ADD_KEYPTR (hh, pnext->items, tmp->w, KNINT_SIZE, tmp);
       pnext->items = copyitem (&items[indexes[i]+1]);
       pnext->length = 1;
       p->rnode = pnext;
       pnext->hnode = p; pnext++;
     } else if( sizes[i] == 1 ){
-      //p->items = NULL;
-      //tmp = copyitem (&items[indexes[i]]);
-      //HASH_ADD_KEYPTR (hh, p->items, tmp->w, KNINT_SIZE, tmp);
       p->items = copyitem (&items[indexes[i]]);
       p->length = 1;
     } else {
@@ -184,7 +167,7 @@ void notrecursive_treesolver ( node_t* root, knint cons ){
 	//clear_node (runner->lnode);
         //clear_node (runner->rnode);
 
-  	//printf ( "depth = %d. right length = %d, left length = %d\n", depth, runner->rnode->length, runner->lnode->length ); 
+  	//printf ( "depth = %d. right length = %d, left length = %d\n", depth, runner->rnode->length, runner->lnode->length );
   	//print_hash (runner->rnode->items);
   	//print_hash (runner->lnode->items);
   	//fflush (stdout);
@@ -213,7 +196,8 @@ void dichosolve ( node_t* to, node_t* big, node_t* small, knint cons ) {
   to->items = big->items;
   to->length = big->length;
 
-  // big->items = NULL;
+  big->items = NULL;
+  big->length = 0;
 
   if ( small->length < 1 ) { return; }
 
