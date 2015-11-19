@@ -43,7 +43,7 @@ node_t* optimal_dichotomic_tree ( const task_t *task){
   }
 
   // Dichotomic branch
-  dicho_tree(p, q, diitems);
+  if( q > 0 ) dicho_tree(p, q, diitems);
 
   return head;
 }
@@ -58,11 +58,11 @@ void prep_items ( const int size, item_t *list, const int q, item_t **diitems, i
 }
 
 // b(q)
-knint bq[] = {0, 0, 4, 6, 12, 20, 38, 70, 140, 268, 532, 1044, 2086, 4134, 8262, 16454, 32908, 65676, 131340, 262412, 524820, 1049108, 2098196, 4195348, 8390694,
-   16779302, 33558566, 67112998, 134225990, 268443718, 536887366, 1073758278, 2147516556, 4295000204, 8590000268, 17179934860, 34359869708, 68719608076, 137439215884, 274878169356};
+knint bq[] = {0LL, 0LL, 4LL, 6LL, 12LL, 20LL, 38LL, 70LL, 140LL, 268LL, 532LL, 1044LL, 2086LL, 4134LL, 8262LL, 16454LL, 32908LL, 65676LL, 131340LL, 262412LL, 524820LL, 1049108LL, 2098196LL, 4195348LL, 8390694LL,
+   16779302LL, 33558566LL, 67112998LL, 134225990LL, 268443718LL, 536887366LL, 1073758278LL, 2147516556LL, 4295000204LL, 8590000268LL, 17179934860LL, 34359869708LL, 68719608076LL, 137439215884LL, 274878169356LL};
 const short bq_size = sizeof(bq) / sizeof(bq[0]);
 int find_q (knint b) {
-  knint *i = bq+2;
+  knint *i = bq;
   for ( ; (i<bq+bq_size && (*i) < b ) ; i++ ) {}
   return (i-bq);
 }
@@ -235,11 +235,11 @@ void dichosolve ( node_t* to, node_t* big, node_t* small, knint cons ) {
   } // for fp
 
   //puts("put new elements of second table or replace elements having less value");fflush(stdout);
-  item_t *desert = createitems0(1);
+  item_t *desert = createitems0(1); // head of bad items to hold them in small list
   lastelem = to->items;
   fp = small->items;
   small->items = small->items->next;
-  if ( (tmp = find_preplace_badcutter(lastelem, fp->w, &(to->length))) == NULL ) {
+  if ( (tmp = find_preplace_badcutter(lastelem, fp->w, &(to->length))) == NULL ) { // if we must put item with fp->w weight to first place
 	if ( *(to->items->w) == *(fp->w) ) {
 		if ( *(to->items->p) < *(fp->p) ) {
 			*(to->items->p) = *(fp->p);
@@ -274,7 +274,7 @@ void dichosolve ( node_t* to, node_t* big, node_t* small, knint cons ) {
     	fp->flag = OLD_ELEM;
     } else {
     	fp->next = desert->next;
-	desert->next = fp;
+		desert->next = fp;
     }
     fp = tmp;
 

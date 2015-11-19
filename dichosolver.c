@@ -12,14 +12,12 @@
 
 int main ( int argc, char** argv ) {
 
-  #if DBGLVL >= LOW_DEBUG
 	time_t clock1, clock2;
 	clock1 = time(NULL);
-  #endif
-
+	
   if ( argc < 2 ) {
     printf("not enough arguments: filename needed\n");
-    exit(1);
+    exit(-1);
   }
 
   task_t *mytask;
@@ -28,9 +26,11 @@ int main ( int argc, char** argv ) {
 /* get task */
   mytask = readtask (argv[1]);
 
-    #if DBGLVL >= LOW_DEBUG
-    	printf("Task readed. b=%ld, size=%d.\n",mytask->b,mytask->length); fflush(stdout);
-    #endif
+	if( mytask->length < 1 ) { 
+		puts("There is no solution");
+		exit(0);
+	}
+    printf("Task readed. b=%lld, size=%d.\n",mytask->b,mytask->length);
     #if DBGLVL >= LOW_DEBUG
 	puts("build tree..."); fflush(stdout);
     #endif
@@ -48,13 +48,12 @@ int main ( int argc, char** argv ) {
 
     treesolver (root,mytask->b);
 
-    #if DBGLVL >= LOW_DEBUG
         clock2 = time(NULL);
-    	printf("task solved in %ld sec, print\n",clock2-clock1); fflush(stdout);
-    #endif
+    	//printf("task solved in %ld sec, print\n",clock2-clock1); fflush(stdout);
     //}
 
   // print complete solution
+	FILE *file;
     if ( root->length == -1 ) { puts("length == -1"); fflush(stdout); }
     else {
       if ( root->items == NULL ) puts ("Wwarning! There's no items!");
@@ -62,8 +61,12 @@ int main ( int argc, char** argv ) {
       // print it
       item_t *decis;
       for ( decis = root->items ; decis->next != NULL ; decis = decis->next );
-      printf ( "knapsack: (p=%ld w=%ld)\n", *(decis->p), *(decis->w) ); //fflush(stdout);
 
+        if( (file = fopen("out.txt","w")) == 0 ) return -1;
+		printf("solution: (%lld, %lld), time: %ld sec\nwriting to out.txt ... ", *(decis->p), *(decis->w), clock2-clock1);
+      fprintf (file, "%lld %lld %ld\n", *(decis->p), *(decis->w), clock2-clock1 ); //fflush(stdout);
+	  fclose(file);
+		puts("ok");
 
     }
 

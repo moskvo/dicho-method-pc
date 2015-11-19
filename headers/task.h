@@ -23,7 +23,7 @@
 
 #define KNINT_LONG
 //#define KNINT_INT
-typedef long int knint;
+typedef long long knint;
 size_t KNINT_SIZE;
 
 typedef struct item_t {

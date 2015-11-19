@@ -62,7 +62,7 @@ void print_items ( int size , item_t *item ){
   if ( size == 0 ) return;
 
   for( p = item->p, w = item->w ; p < item->p+size ; p++,w++ )
-    printf("(%4ld %4ld) ",*p,*w);
+    printf("(%4lld %4lld) ",*p,*w);
   puts("");
 }
 // same as print_items() but not add newline symbol
@@ -71,13 +71,13 @@ void print_items_line ( int size , item_t *item ){
   if ( size == 0 ) return;
 
   for( p = item->p, w = item->w ; p < item->p+size ; p++,w++ )
-    printf("(%4ld %4ld) ",*p,*w);
+    printf("(%4lld %4lld) ",*p,*w);
 }
 
 void print_items_list (item_t *list){
   item_t *p;
   for ( p = list ; p != NULL ; p = p->next ) {
-    printf ("(%4ld %4ld) ",*(p->p),*(p->w));
+    printf ("(%4lld %4lld) ",*(p->p),*(p->w));
   }
   puts("");
 }
@@ -228,7 +228,7 @@ task_t* readtask(char* filename){
   if( (file = fopen(filename,"r")) == 0 ) return NULL;
 
     knint b;
-    if( fscanf(file,"%ld",&b) != 1 ) return NULL;
+    if( fscanf(file,"%lld",&b) != 1 ) return NULL;
 
     int size;
     if( fscanf(file,"%d",&size) != 1 ) return NULL;
@@ -237,10 +237,28 @@ task_t* readtask(char* filename){
 
     item_t *head = task->items;
     knint *tmp;
+    int morethanb = 0;
     for( tmp = head->p ; tmp < head->p+size ; tmp++ )
-    { if( fscanf (file,"%ld", tmp) != 1 ) return 0; }
+    { if( fscanf (file,"%lld", tmp) != 1 ) return 0; }
     for( tmp = head->w ; tmp < head->w+size ; tmp++ )
-    { if( fscanf (file,"%ld", tmp) != 1 ) return 0; }
+    { 
+      if( fscanf (file,"%lld", tmp) != 1 ) return 0;
+      if( *tmp > b ) morethanb++;
+    }
+	
+	if( morethanb > 0 ) {
+		task_t* task2 = createtask(size-morethanb,b);
+		item_t* head2;
+		for( head = task->items, head2 = task2->items ; head < task->items+size ; head++ ) {
+			if( *(head->w) <= b ) {
+				*(head2->p) = *(head->p);
+				*(head2->w) = *(head->w);
+				head2++;
+			}
+		}
+		free_task(&task);
+		task = task2;
+	}// if
 
 
   fclose(file);
@@ -250,7 +268,7 @@ task_t* readtask(char* filename){
 
 void print_task (task_t* task) {
   puts("task");
-  printf ("  b = %ld\n  length = %d", task->b, task->length);
+  printf ("  b = %lld\n  length = %d", task->b, task->length);
   print_items (task->length, task->items);
 }
 
@@ -285,7 +303,7 @@ void print_node (char * pre, node_t *node){
   else {
     item_t *item;
     for ( item = node->items ; item != NULL ; item = item->next ) {
-      printf ("(%ld %ld) ",*(item->p),*(item->w));
+      printf ("(%lld %lld) ",*(item->p),*(item->w));
     }
     printf("src:%d",node->source);
     puts("");

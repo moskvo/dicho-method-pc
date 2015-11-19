@@ -25,5 +25,4 @@ void recursive_treesolver (node_t* , knint );
 
 void dichosolve( node_t*, node_t*, node_t*, knint);
 
-
 #endif
