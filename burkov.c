@@ -212,12 +212,13 @@ void dichosolve ( node_t* to, node_t* big, node_t* small, knint cons ) {
   //puts ("dichosolve. pairwise addition"); fflush(stdout);
   item_t *lastelem, *preelem = NULL;
   for( fp = to->items ; fp != NULL ; preelem = fp, fp = fp->next ) {
+	// if element was computed in this pairwise addition cycle leave it
     if ( fp->flag == NEW_ELEM ) { fp->flag = OLD_ELEM; continue; }
     lastelem = fp;
     //puts("before for"); fflush(stdout);
     for( sp = small->items ; sp != NULL && (p = *(fp->p) + *(sp->p), w = *(fp->w) + *(sp->w), w<=cons) ; sp = sp->next ) {
 	//printf ("lastelemw=%ld w=%ld\n",*(lastelem->w),w);
-    	lastelem = find_preplace_badcutter (lastelem,&w, &(to->length));
+    	lastelem = find_preplace_badcutter (lastelem, &w, &(to->length));
 		if ( lastelem == NULL ) {
 			puts("lastelem null!");
 			//printf("w=%ld, preelemw=%ld, fpw=%ld\n",w,*(preelem->w), w-*(sp->w));
@@ -244,7 +245,7 @@ void dichosolve ( node_t* to, node_t* big, node_t* small, knint cons ) {
   lastelem = to->items;
   fp = small->items;
   small->items = small->items->next;
-  if ( (tmp = find_preplace_badcutter(lastelem, fp->w, &(to->length))) == NULL ) { // if we must put item with fp->w weight to first place
+  if ( (tmp = find_preplace_badcutter_simple(lastelem, fp->w, &(to->length))) == NULL ) { // if we must put item with fp->w weight to first place
 	if ( *(to->items->w) == *(fp->w) ) {		
 		if ( *(to->items->p) < *(fp->p) ) { // replace head of to->items with fp
 			// TODO may be put fp to desert?
@@ -263,7 +264,7 @@ void dichosolve ( node_t* to, node_t* big, node_t* small, knint cons ) {
 		to->length++;
 	}
   } else {
-	if ( safe_put_item (tmp, &fp, &(to->length)) == 0 ) {
+	if ( put_item_simple (tmp, &fp, &(to->length)) == 0 ) {
 		/*if ( fp->flag != TRUE_ELEM ) */fp->flag = OLD_ELEM;
 		lastelem = fp;
 	} else { // put_item drops fp
@@ -276,9 +277,9 @@ void dichosolve ( node_t* to, node_t* big, node_t* small, knint cons ) {
 
   //puts ("cycle 'put new elements ...'"); fflush(stdout);
   for( fp = small->items ; fp != NULL /*&& *(fp->w) <= cons*/ ; ) {
-    lastelem = find_preplace_badcutter (lastelem, fp->w, &(to->length));
+    lastelem = find_preplace_badcutter_simple (lastelem, fp->w, &(to->length));
     tmp = fp->next;
-    if ( safe_put_item (lastelem, &fp, &(to->length)) == 0 ) {
+    if ( put_item_simple (lastelem, &fp, &(to->length)) == 0 ) {
     	/*if ( fp->flag != TRUE_ELEM ) */fp->flag = OLD_ELEM;
     } else {
     	fp->next = desert->next;
@@ -295,7 +296,6 @@ void dichosolve ( node_t* to, node_t* big, node_t* small, knint cons ) {
 	knint edge;
 	do {
 		edge = *(lastelem->p);
-		if( lastelem->flag != OLD_ELEM ) printf("flag=%d\n", lastelem->flag);
 		while ( lastelem->next != NULL && /*lastelem->next->flag != TRUE_ELEM && */edge >= *(lastelem->next->p) ) {
 			tmp = lastelem->next;
 			lastelem->next = lastelem->next->next;

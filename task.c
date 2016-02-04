@@ -116,7 +116,10 @@ int put_item (item_t *preplace, item_t **item, int *listlen) {
 		if ( pnext != NULL && /*pnext->flag != TRUE_ELEM && */*(pnext->w) == *(vitem->w) ) {
 			if ( *(pnext->p) < *(vitem->p)  ) {
 				preplace->next = vitem;
-				if ( pnext->flag == OLD_ELEM ) {
+				if ( pnext->flag == OLD_ELEM || pnext->flag == ONESHOT_ELEM ) {
+					//vitem->next = pnext->next;
+					//pnext->next = vitem;
+					//preplace->next = pnext;
 					vitem->next = pnext;
 					pnext->flag = ONESHOT_ELEM;
 					(*listlen)++;
@@ -169,6 +172,33 @@ int safe_put_item (item_t *preplace, item_t **item, int *listlen) {
 	return 0;
 }
 
+// using when simple move elements from one node to another
+int put_item_simple (item_t *preplace, item_t **item, int *listlen) {
+	item_t *vitem = *item;
+	if ( *(preplace->p) >= *(vitem->p) ) {
+		return 1;
+	} else {
+		/*if ( vitem->flag != TRUE_ELEM ) */vitem->flag = NEW_ELEM;
+		item_t *pnext = preplace->next, *tmp;
+		if ( pnext != NULL && /*pnext->flag != TRUE_ELEM && */*(pnext->w) == *(vitem->w) ) {
+			if ( *(pnext->p) < *(vitem->p)  ) {
+				preplace->next = vitem;
+				vitem->next = pnext->next;
+				free_items (&pnext);				
+				return 0;
+			} else {
+				return 1;
+			}
+		} else {
+			preplace->next = vitem;
+			vitem->next = pnext;
+			(*listlen)++;
+		}
+	}
+	return 0;
+}
+
+
 item_t* find_preplace (item_t *list, knint *itemw) {
 	if ( *(list->w) >= *itemw ) return NULL;
 	for ( ; list->next != NULL && *(list->next->w) < *itemw ; list = list->next );
@@ -194,6 +224,29 @@ item_t* find_preplace_badcutter (item_t *list, knint *itemw, int *listlen) {
 				}
 				break;//list = list->next;
 			}
+		}// while
+
+		if ( list->next != NULL && *(list->next->w) < *itemw ) {
+			list = list->next;
+			edge = *(list->p);
+		// while we can step further
+		} else break;
+	} while ( 1 );
+	return list;
+}
+
+// using when simple move elements from one node to another
+item_t* find_preplace_badcutter_simple (item_t *list, knint *itemw, int *listlen) {
+	if ( *(list->w) >= *itemw ) return NULL;
+	knint edge = *(list->p);
+	item_t *tmp;
+	do {
+		// remove inefficient elems after item "list"
+		while ( list->next != NULL && edge >= *(list->next->p) ) {
+				tmp = list->next;
+				list->next = list->next->next;
+				free_items (&tmp);
+				(*listlen)--;
 		}// while
 
 		if ( list->next != NULL && *(list->next->w) < *itemw ) {
