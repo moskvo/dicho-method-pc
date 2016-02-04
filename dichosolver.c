@@ -30,9 +30,9 @@ int main ( int argc, char** argv ) {
 		puts("There is no solution");
 		exit(0);
 	}
-    printf("Task readed. b=%lld, size=%d.\n",mytask->b,mytask->length);
     #if DBGLVL >= LOW_DEBUG
-	puts("build tree..."); fflush(stdout);
+		printf("Task readed. b=%lld, size=%d.\n",mytask->b,mytask->length);
+		puts("build tree..."); fflush(stdout);
     #endif
 
     //{ solve mytask
@@ -53,7 +53,7 @@ int main ( int argc, char** argv ) {
     //}
 
   // print complete solution
-	FILE *file;
+	//FILE *file;
     if ( root->length == -1 ) { puts("length == -1"); fflush(stdout); }
     else {
       if ( root->items == NULL ) puts ("Wwarning! There's no items!");
@@ -62,11 +62,12 @@ int main ( int argc, char** argv ) {
       item_t *decis;
       for ( decis = root->items ; decis->next != NULL ; decis = decis->next );
 
-        if( (file = fopen("out.txt","w")) == 0 ) return -1;
-		printf("solution: (%lld, %lld), time: %ld sec\nwriting to out.txt ... ", *(decis->p), *(decis->w), clock2-clock1);
-      fprintf (file, "%lld %lld %ld\n", *(decis->p), *(decis->w), clock2-clock1 ); //fflush(stdout);
-	  fclose(file);
-		puts("ok");
+        //if( (file = fopen("out.txt","w")) == 0 ) return -1;
+		//printf("solution: (%lld, %lld), time: %ld sec\n", *(decis->p), *(decis->w), clock2-clock1);
+		printf("%lld\n%lld\n%ld\n", *(decis->p), *(decis->w), clock2-clock1);
+      //fprintf (file, "%lld %lld %ld\n", *(decis->p), *(decis->w), clock2-clock1 ); //fflush(stdout);
+	  //fclose(file);
+		//puts("ok");
 
     }
 

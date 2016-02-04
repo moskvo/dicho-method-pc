@@ -32,6 +32,7 @@ node_t* optimal_dichotomic_tree ( const task_t *task){
   for ( i = 0 ; i < task->length-q ; i++ ) { // in fact p move as p = p + 2
     p->lnode = (p+1);
     p->lnode->items = copyitem(pl);
+//	p->lnode->items->flag = TRUE_ELEM;
     pl++;
     p->lnode->length = 1;
     p->lnode->hnode = p;
@@ -121,16 +122,19 @@ void dicho_tree_notrecursive(node_t *head, const int size, item_t *items){
     if( sizes[i] > 2 ) { printf("size of leaf more than 2\n"); fflush(stdout); }
     if( sizes[i] == 2 ){
       pnext->items = copyitem (&items[indexes[i]]);
+//	  pnext->items->flag = TRUE_ELEM;
       pnext->length = 1;
       p->lnode = pnext;
       pnext->hnode = p; pnext++;
 
       pnext->items = copyitem (&items[indexes[i]+1]);
+//	  pnext->items->flag = TRUE_ELEM;
       pnext->length = 1;
       p->rnode = pnext;
       pnext->hnode = p; pnext++;
     } else if( sizes[i] == 1 ){
       p->items = copyitem (&items[indexes[i]]);
+//	  p->items->flag = TRUE_ELEM;
       p->length = 1;
     } else {
       // error
@@ -165,9 +169,9 @@ void notrecursive_treesolver ( node_t* root, knint cons ){
 	dichosolve (runner, bignode, smallnode, cons );
 
 	//clear_node (runner->lnode);
-        //clear_node (runner->rnode);
+    //clear_node (runner->rnode);
 
-  	//printf ( "depth = %d. right length = %d, left length = %d\n", depth, runner->rnode->length, runner->lnode->length );
+  	//printf ( "depth = %d. length = %d, right length = %d, left length = %d\n", depth, runner->length, runner->rnode->length, runner->lnode->length );
   	//print_hash (runner->rnode->items);
   	//print_hash (runner->lnode->items);
   	//fflush (stdout);
@@ -214,11 +218,11 @@ void dichosolve ( node_t* to, node_t* big, node_t* small, knint cons ) {
     for( sp = small->items ; sp != NULL && (p = *(fp->p) + *(sp->p), w = *(fp->w) + *(sp->w), w<=cons) ; sp = sp->next ) {
 	//printf ("lastelemw=%ld w=%ld\n",*(lastelem->w),w);
     	lastelem = find_preplace_badcutter (lastelem,&w, &(to->length));
-	if ( lastelem == NULL ) {
-		puts("lastelem null!");
-		//printf("w=%ld, preelemw=%ld, fpw=%ld\n",w,*(preelem->w), w-*(sp->w));
-		fflush(stdout);
-	}
+		if ( lastelem == NULL ) {
+			puts("lastelem null!");
+			//printf("w=%ld, preelemw=%ld, fpw=%ld\n",w,*(preelem->w), w-*(sp->w));
+			fflush(stdout);
+		}
     	tmp = copyitem (lastelem);
     	*(tmp->p) = p;
     	*(tmp->w) = w;
@@ -235,21 +239,24 @@ void dichosolve ( node_t* to, node_t* big, node_t* small, knint cons ) {
   } // for fp
 
   //puts("put new elements of second table or replace elements having less value");fflush(stdout);
-  item_t *desert = createitems0(1); // head of bad items to hold them in small list
+  item_t *desert = createitems0(1); // head of bad items to hold them in small list later
+  int desertlen = 0;
   lastelem = to->items;
   fp = small->items;
   small->items = small->items->next;
   if ( (tmp = find_preplace_badcutter(lastelem, fp->w, &(to->length))) == NULL ) { // if we must put item with fp->w weight to first place
-	if ( *(to->items->w) == *(fp->w) ) {
-		if ( *(to->items->p) < *(fp->p) ) {
+	if ( *(to->items->w) == *(fp->w) ) {		
+		if ( *(to->items->p) < *(fp->p) ) { // replace head of to->items with fp
+			// TODO may be put fp to desert?
 			*(to->items->p) = *(fp->p);
 			free_items (&fp);
 		} else {
 			fp->next = desert->next;
 			desert->next = fp;
+			desertlen++;
 		}
 	} else { // Put fp to first place
-		fp->flag = OLD_ELEM;
+		/*if ( fp->flag != TRUE_ELEM ) */fp->flag = OLD_ELEM;
 		to->items = fp;
 		to->items->next = lastelem;
 		lastelem = to->items;
@@ -257,36 +264,39 @@ void dichosolve ( node_t* to, node_t* big, node_t* small, knint cons ) {
 	}
   } else {
 	if ( safe_put_item (tmp, &fp, &(to->length)) == 0 ) {
-		fp->flag = OLD_ELEM;
+		/*if ( fp->flag != TRUE_ELEM ) */fp->flag = OLD_ELEM;
 		lastelem = fp;
 	} else { // put_item drops fp
 		lastelem = tmp;
 		fp->next = desert->next;
 		desert->next = fp;
+		desertlen++;
 	}
   }
 
-  //puts ("cycle"); fflush(stdout);
+  //puts ("cycle 'put new elements ...'"); fflush(stdout);
   for( fp = small->items ; fp != NULL /*&& *(fp->w) <= cons*/ ; ) {
     lastelem = find_preplace_badcutter (lastelem, fp->w, &(to->length));
     tmp = fp->next;
     if ( safe_put_item (lastelem, &fp, &(to->length)) == 0 ) {
-    	fp->flag = OLD_ELEM;
+    	/*if ( fp->flag != TRUE_ELEM ) */fp->flag = OLD_ELEM;
     } else {
     	fp->next = desert->next;
 		desert->next = fp;
+		desertlen++;
     }
     fp = tmp;
-
   }
   small->items = desert->next; // hold bad items (unsorted?)
+  small->length = desertlen;
   free_items (&desert);
 
   //puts("delete inefficient elems in tail");fflush(stdout);
 	knint edge;
 	do {
 		edge = *(lastelem->p);
-		while ( lastelem->next != NULL && edge >= *(lastelem->next->p) ) {
+		if( lastelem->flag != OLD_ELEM ) printf("flag=%d\n", lastelem->flag);
+		while ( lastelem->next != NULL && /*lastelem->next->flag != TRUE_ELEM && */edge >= *(lastelem->next->p) ) {
 			tmp = lastelem->next;
 			lastelem->next = lastelem->next->next;
 			free_items (&tmp);

@@ -22,10 +22,11 @@ item_t* createitems0(int size){
   if( size < 1 ) return NULL;
   knint *p = (knint*)calloc (size,KNINT_SIZE),
         *w = (knint*)calloc (size,KNINT_SIZE);
-  item_t *items = (item_t*)calloc (size,ITEM_SIZE), *i;
+  item_t *items = (item_t*)calloc (size,ITEM_SIZE), 
+		 *i;
   if( (p == 0) || (w == 0) || (items == 0) ) { return NULL; }
 
-  for( i=items ; i < items+size ; i++ )
+  for( i = items ; i < items+size ; i++ )
   {  i->p = p++; i->w = w++; i->flag = OLD_ELEM; }
 
   return items;
@@ -62,7 +63,7 @@ void print_items ( int size , item_t *item ){
   if ( size == 0 ) return;
 
   for( p = item->p, w = item->w ; p < item->p+size ; p++,w++ )
-    printf("(%4lld %4lld) ",*p,*w);
+    printf("{%4lld, %4lld}, ",*p,*w);
   puts("");
 }
 // same as print_items() but not add newline symbol
@@ -110,9 +111,9 @@ int put_item (item_t *preplace, item_t **item, int *listlen) {
 		free_items (item);
 		return 1;
 	} else {
-		vitem->flag = NEW_ELEM;
+		/*if ( vitem->flag != TRUE_ELEM ) */vitem->flag = NEW_ELEM;
 		item_t *pnext = preplace->next, *tmp;
-		if ( pnext != NULL && *(pnext->w) == *(vitem->w) ) {
+		if ( pnext != NULL && /*pnext->flag != TRUE_ELEM && */*(pnext->w) == *(vitem->w) ) {
 			if ( *(pnext->p) < *(vitem->p)  ) {
 				preplace->next = vitem;
 				if ( pnext->flag == OLD_ELEM ) {
@@ -136,14 +137,15 @@ int put_item (item_t *preplace, item_t **item, int *listlen) {
 	}
 	return 0;
 }
+// same as put_item but doesn't free item
 int safe_put_item (item_t *preplace, item_t **item, int *listlen) {
 	item_t *vitem = *item;
 	if ( *(preplace->p) >= *(vitem->p) ) {
 		return 1;
 	} else {
-		vitem->flag = NEW_ELEM;
+		/*if ( vitem->flag != TRUE_ELEM ) */vitem->flag = NEW_ELEM;
 		item_t *pnext = preplace->next, *tmp;
-		if ( pnext != NULL && *(pnext->w) == *(vitem->w) ) {
+		if ( pnext != NULL && /*pnext->flag != TRUE_ELEM && */*(pnext->w) == *(vitem->w) ) {
 			if ( *(pnext->p) < *(vitem->p)  ) {
 				preplace->next = vitem;
 				if ( pnext->flag == OLD_ELEM ) {
@@ -237,16 +239,16 @@ task_t* readtask(char* filename){
 
     item_t *head = task->items;
     knint *tmp;
-    int morethanb = 0;
+    //int morethanb = 0;
     for( tmp = head->p ; tmp < head->p+size ; tmp++ )
     { if( fscanf (file,"%lld", tmp) != 1 ) return 0; }
     for( tmp = head->w ; tmp < head->w+size ; tmp++ )
     { 
       if( fscanf (file,"%lld", tmp) != 1 ) return 0;
-      if( *tmp > b ) morethanb++;
+      //if( *tmp > b ) morethanb++;
     }
 	
-	if( morethanb > 0 ) {
+	/*if( morethanb > 0 ) {
 		task_t* task2 = createtask(size-morethanb,b);
 		item_t* head2;
 		for( head = task->items, head2 = task2->items ; head < task->items+size ; head++ ) {
@@ -258,7 +260,7 @@ task_t* readtask(char* filename){
 		}
 		free_task(&task);
 		task = task2;
-	}// if
+	}// if */
 
 
   fclose(file);
@@ -268,7 +270,7 @@ task_t* readtask(char* filename){
 
 void print_task (task_t* task) {
   puts("task");
-  printf ("  b = %lld\n  length = %d", task->b, task->length);
+  printf ("  b = %lld\n  length = %d\n", task->b, task->length);
   print_items (task->length, task->items);
 }
 
@@ -299,7 +301,7 @@ void print_tree (node_t *root){
 
 void print_node (char * pre, node_t *node){
   fputs(pre,stdout);
-  if( node->length < 1 ) puts("node: 0 items");
+  if( node->length < 1 ) printf("node: %d items\n", node->length);
   else {
     item_t *item;
     for ( item = node->items ; item != NULL ; item = item->next ) {

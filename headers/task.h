@@ -18,6 +18,7 @@
 #define OLD_ELEM 0
 #define NEW_ELEM 1
 #define ONESHOT_ELEM 2
+#define TRUE_ELEM 3
 
 /*-- item section --*/
 
